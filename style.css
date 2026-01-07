@@ -1,0 +1,503 @@
+:root {
+    --bg-color: #0f172a;
+    --node-bg: rgba(30, 41, 59, 0.7);
+    --node-border: rgba(148, 163, 184, 0.2);
+    --text-color: #e2e8f0;
+    --accent-color: #38bdf8;
+    --header-bg: rgba(15, 23, 42, 0.8);
+    --connection-color: #94a3b8;
+    --base-font-size: 16px;
+}
+
+[data-theme="midnight"] {
+    --bg-color: #020617;
+    /* Slate 950 / Deep Blue */
+    --node-bg: rgba(30, 27, 75, 0.8);
+    /* Indigo 950 */
+    --node-border: rgba(99, 102, 241, 0.3);
+    /* Indigo 500 */
+    --text-color: #e0e7ff;
+    /* Indigo 100 */
+    --accent-color: #818cf8;
+    /* Indigo 400 */
+    --header-bg: rgba(15, 15, 35, 0.9);
+    --connection-color: #6366f1;
+}
+
+[data-theme="forest"] {
+    --bg-color: #022c22;
+    /* Teal 950 */
+    --node-bg: rgba(17, 94, 89, 0.7);
+    /* Teal 800 */
+    --node-border: rgba(45, 212, 191, 0.3);
+    /* Teal 400 */
+    --text-color: #ccfbf1;
+    /* Teal 100 */
+    --accent-color: #2dd4bf;
+    /* Teal 400 */
+    --header-bg: rgba(6, 44, 39, 0.9);
+    --connection-color: #5eead4;
+}
+
+[data-theme="sunset"] {
+    --bg-color: #2a0a0a;
+    /* Dark Red */
+    --node-bg: rgba(69, 10, 10, 0.75);
+    /* Red 900 */
+    --node-border: rgba(251, 113, 133, 0.3);
+    /* Rose 400 */
+    --text-color: #ffe4e6;
+    /* Rose 100 */
+    --accent-color: #f43f5e;
+    /* Rose 500 */
+    --header-bg: rgba(40, 5, 5, 0.9);
+    --connection-color: #fb7185;
+}
+
+[data-theme="retro"] {
+    --bg-color: #282c34;
+    /* One Dark bg */
+    --node-bg: rgba(40, 44, 52, 0.9);
+    --node-border: rgba(171, 178, 191, 0.3);
+    --text-color: #abb2bf;
+    --accent-color: #e06c75;
+    /* Red */
+    --header-bg: rgba(33, 37, 43, 0.9);
+    --connection-color: #98c379;
+    /* Green */
+}
+
+[data-theme="light"] {
+    --bg-color: #f8fafc;
+    /* Slate 50 */
+    --node-bg: rgba(255, 255, 255, 0.9);
+    --node-border: rgba(148, 163, 184, 0.4);
+    /* Slate 400 */
+    --text-color: #334155;
+    /* Slate 700 */
+    --accent-color: #0ea5e9;
+    /* Sky 500 */
+    --header-bg: rgba(241, 245, 249, 0.95);
+    /* Slate 100 */
+    --connection-color: #64748b;
+    /* Slate 500 */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: var(--base-font-size);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+#sidebar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 200px;
+    max-height: calc(100vh - 40px);
+    /* Account for top padding/margin */
+    overflow-y: auto;
+    /* Enable scrolling */
+    background: var(--node-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--node-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateX(-150%);
+    transition: transform 0.3s ease-in-out;
+}
+
+#sidebar.open {
+    transform: translateX(0);
+}
+
+.node-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--node-border);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.node-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-image: radial-gradient(var(--node-border) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.node {
+    position: absolute;
+    min-width: 200px;
+    background: var(--node-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--node-border);
+    border-radius: 8px;
+    color: var(--text-color);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    /* Minimum height */
+}
+
+.node.selected {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+}
+
+.node.resizable {
+    resize: both;
+    overflow: hidden;
+    /* Required for resize to work */
+    min-height: 200px;
+    min-width: 300px;
+}
+
+.node-header {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--node-border);
+    border-radius: 8px 8px 0 0;
+    cursor: grab;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.node-header:active {
+    cursor: grabbing;
+}
+
+.node-content {
+    padding: 10px;
+    font-size: 0.9em;
+    flex: 1;
+    /* Take remaining space */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent spill */
+}
+
+.node-inputs,
+.node-outputs {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10px;
+}
+
+.socket {
+    width: 12px;
+    height: 12px;
+    background: var(--connection-color);
+    border-radius: 50%;
+    cursor: crosshair;
+    transition: background 0.2s;
+}
+
+.socket:hover {
+    background: var(--accent-color);
+}
+
+/* Autocomplete Popup */
+.autocomplete-popup {
+    position: absolute;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    min-width: 150px;
+    font-size: 0.9em;
+}
+
+.autocomplete-popup ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.autocomplete-popup li {
+    padding: 5px 10px;
+    cursor: pointer;
+    color: #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.autocomplete-popup li:hover,
+.autocomplete-popup li.selected {
+    background: #007acc;
+    color: white;
+}
+
+.autocomplete-popup li .type {
+    font-size: 0.8em;
+    opacity: 0.6;
+    margin-left: 10px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    width: 500px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 10px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.file-item {
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 4px;
+}
+
+.file-item:hover {
+    background: rgba(56, 189, 248, 0.2);
+}
+
+.close-btn {
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+/* Specific Node Styles */
+input,
+select,
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--node-border);
+    color: var(--text-color);
+    border-radius: 4px;
+    padding: 6px;
+    margin-bottom: 8px;
+    font-family: inherit;
+}
+
+textarea {
+    resize: both;
+    min-height: 60px;
+}
+
+button.run-btn {
+    background: var(--accent-color);
+    color: #0f172a;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+}
+
+button.run-btn:hover {
+    opacity: 0.9;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.8em;
+}
+
+.result-table th,
+.result-table td {
+    border: 1px solid var(--node-border);
+    padding: 4px;
+    text-align: left;
+}
+
+.result-table th {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+svg.connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Let clicks pass through to nodes */
+    overflow: visible;
+    z-index: 0;
+}
+
+#connections-layer path {
+    pointer-events: stroke;
+    /* Only allow interaction with the lines themselves if needed, or none if strictly visual */
+}
+
+path {
+    fill: none;
+    stroke: var(--connection-color);
+    stroke-width: 2px;
+}
+
+/* Generic Controls for better font inheritance */
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+    font-size: 1em;
+    /* Inherit global font size */
+}
+
+/* DB Browser Specifics */
+.db-browser-btn {
+    font-size: 0.7em !important;
+    /* Smaller than base */
+}
+
+.table-def-pre {
+    font-size: 0.9em !important;
+    /* Slightly smaller code font */
+}
+
+.db-select {
+    font-size: 0.9em;
+}
+
+.screen-title {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    /* Inherit and scale */
+    font-weight: 600;
+    color: var(--accent-color);
+    border: 1px solid var(--node-border);
+    pointer-events: none;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.resizer {
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(135deg, transparent 50%, var(--accent-color) 50%);
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    cursor: nwse-resize;
+    border-radius: 0 0 4px 0;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.resizer:hover {
+    opacity: 1;
+}
+
+#connections-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#nodes-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.node {
+    pointer-events: auto;
+}
+
+svg path {
+    pointer-events: stroke;
+}
+
+svg path.selected {
+    stroke: #fbbf24 !important;
+    stroke-width: 4px !important;
+    filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.5));
+}
+
+.node {
+    pointer-events: auto;
+    z-index: 100;
+    /* Ensure above layer if stacking context allows */
+}

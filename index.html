@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual SQL Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for premium feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"
+        style="position:absolute; top:20px; left:20px; z-index:200; cursor:pointer; font-size:24px; background:rgba(0,0,0,0.5); padding:5px 10px; border-radius:4px; color:white;">
+        &#9776;
+    </div>
+    <div id="sidebar">
+        <h3>Nodes</h3>
+
+        <div class="node-btn" onclick="app.addNode('table')">Table Source</div>
+        <div class="node-btn" onclick="app.addNode('file')">File Source</div>
+        <div class="node-btn" onclick="app.addNode('query')">SQL Query</div>
+        <div class="node-btn" onclick="app.addNode('join')">Filtering Node</div>
+        <div class="node-btn" onclick="app.addNode('display')">Results View</div>
+        <hr style="border-color: var(--node-border); width: 100%;">
+        <div class="node-btn" onclick="app.clear()">Clear Graph</div>
+        <div class="node-btn" onclick="new DbBrowserModal()">DB Browser</div>
+        <div class="node-btn" style="color: #f87171;" onclick="app.cleanup()">Cleanup Cache</div>
+        <div style="margin-top:20px; border-top:1px solid #444; padding-top:10px;">
+            <div style="margin-bottom: 10px;">
+                <label for="font-size-select"
+                    style="font-size: 0.8em; color: #aaa; display: block; margin-bottom: 4px;">Font Size</label>
+                <select id="font-size-select" onchange="app.setFontSize(this.value)"
+                    style="width: 100%; background: #252526; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 4px;">
+                    <option value="14px">Small</option>
+                    <option value="16px" selected>Normal</option>
+                    <option value="18px">Large</option>
+                    <option value="20px">Extra Large</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="theme-select"
+                    style="font-size: 0.8em; color: #aaa; display: block; margin-bottom: 4px;">Theme</label>
+                <select id="theme-select" onchange="app.setTheme(this.value)"
+                    style="width: 100%; background: #252526; color: #eee; border: 1px solid #444; padding: 4px; border-radius: 4px;">
+                    <option value="default" selected>Default (Slate)</option>
+                    <option value="midnight">Midnight (Indigo)</option>
+                    <option value="forest">Forest (Teal)</option>
+                    <option value="sunset">Sunset (Rose)</option>
+                    <option value="retro">Retro (One Dark)</option>
+                    <option value="light">Light (Slate)</option>
+                </select>
+            </div>
+            <button id="save-btn" style="width:100%; margin-bottom:5px; background:#444; color:white;">Save
+                Graph</button>
+            <button id="load-btn" style="width:100%; margin-bottom:5px; background:#444; color:white;">Load
+                Graph</button>
+            <button id="explain-btn"
+                style="width:100%; margin-bottom:5px; background:#0ea5e9; color:white; font-weight:bold;">Show
+                Explanation</button>
+            <button id="help-btn" style="width:100%; background:#8b5cf6; color:white; font-weight:bold;"
+                onclick="new ReadmeModal()">Show Help</button>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <div class="screen-title-container"
+            style="position: absolute; top: 20px; right: 20px; display:flex; flex-direction:column; align-items:flex-end; pointer-events: none; z-index: 100;">
+            <div style="display:flex; align-items:center; gap:10px; pointer-events: auto;">
+                <div id="current-file" class="screen-title">Unsaved</div>
+                <button id="edit-info-btn"
+                    style="background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(148,163,184,0.2); border-radius:4px; cursor:pointer; padding:5px 8px;">✏️</button>
+            </div>
+            <div id="graph-description"
+                style="color:rgba(255,255,255,0.7); font-size:0.9em; margin-top:5px; background:rgba(0,0,0,0.6); padding:5px; border-radius:4px; display:none; max-width: 300px; text-align:right;">
+            </div>
+        </div>
+        <div id="nodes-layer"></div>
+        <svg class="connections" id="connections-layer" style="z-index: 100; pointer-events: none;"></svg>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
