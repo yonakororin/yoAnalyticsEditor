@@ -109,6 +109,17 @@ export class FileNode extends Node {
             };
             this.content.appendChild(checkContainer);
 
+            // Pattern Input
+            const patternContainer = document.createElement('div');
+            patternContainer.style.marginTop = '5px';
+            patternContainer.innerHTML = `
+                <input type="text" class="pattern-input" placeholder="Pattern (e.g. data/*.csv)" value="${this.pattern || ''}" style="font-size:0.9em; padding:4px; width:100%; box-sizing:border-box; background:#333; color:#fff; border:1px solid #555; border-radius:3px;">
+            `;
+            // Save pattern to state on change
+            patternContainer.querySelector('input').onchange = (e) => {
+                this.pattern = e.target.value;
+            };
+            this.content.appendChild(patternContainer);
 
             // Index Input
             const indexContainer = document.createElement('div');
@@ -132,8 +143,11 @@ export class FileNode extends Node {
     }
 
     async importFile() {
-        if (this.selectedFiles.length === 0) {
-            alert('Select file(s) first');
+        // Allow import if pattern is present OR files are selected
+        const pattern = this.content.querySelector('.pattern-input') ? this.content.querySelector('.pattern-input').value : (this.pattern || '');
+        
+        if (this.selectedFiles.length === 0 && !pattern) {
+            alert('Select file(s) or enter a pattern');
             return;
         }
 
@@ -149,6 +163,7 @@ export class FileNode extends Node {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     paths: this.selectedFiles,
+                    pattern: pattern,
                     has_header: this.hasHeader,
                     index_column: indexCol
                 })
@@ -157,7 +172,10 @@ export class FileNode extends Node {
 
             if (json.error) throw new Error(json.error);
 
-            this.data = { tableName: json.table };
+            this.data = { ...this.data, tableName: json.table, pattern: pattern };
+            // Ensure pattern is persisted in this instance for save/restore
+            this.pattern = pattern;
+
             this.header.style.background = 'rgba(56, 189, 248, 0.4)';
             setTimeout(() => this.header.style.background = '', 1000);
             this.triggerDownstreamUpdates();
@@ -197,28 +215,41 @@ export class FileNode extends Node {
             this.infoDiv.style.paddingTop = '5px';
             this.content.appendChild(this.infoDiv);
         }
+        
+        let msg = '';
+        if (this.pattern) {
+             msg = `Pattern: ${this.pattern}`;
+        }
+        
         if (this.selectedFiles.length > 0) {
+            if (msg) msg += '\n';
             if (this.selectedFiles.length === 1) {
                 const name = this.selectedFiles[0].split('/').pop();
-                this.infoDiv.innerText = 'Selected: ' + name;
+                msg += 'Selected: ' + name;
             } else {
-                this.infoDiv.innerText = `Selected: ${this.selectedFiles.length} files`;
+                msg += `Selected: ${this.selectedFiles.length} files`;
             }
-            this.infoDiv.title = this.selectedFiles.join('\n');
-        } else {
-            this.infoDiv.innerText = 'No file selected';
         }
+        
+        if (!msg) msg = 'No file selected';
+        
+        this.infoDiv.innerText = msg;
+        this.infoDiv.title = this.selectedFiles.join('\n');
     }
 
     getDescription(stepMap, connections) {
         let desc = `- **アクション**: ファイルをロード\n`;
+        
+        if (this.pattern) {
+             desc += `- **パターン**: \`${this.pattern}\`\n`;
+        }
+
         const count = this.selectedFiles ? this.selectedFiles.length : 0;
         if (count === 1) {
             desc += `- **ファイルパス**: \`${this.selectedFiles[0] || '未選択'}\`\n`;
         } else if (count > 1) {
             desc += `- **ファイルパス**: ${count} files selected\n`;
-            // Optional: list them if few?
-        } else {
+        } else if (!this.pattern) {
             desc += `- **ファイルパス**: 未選択\n`;
         }
         desc += `- **設定**: ${this.hasHeader ? 'ヘッダーあり' : 'ヘッダーなし'}\n`;
@@ -227,7 +258,7 @@ export class FileNode extends Node {
 
     async run() {
         if (!this.data || !this.data.tableName) {
-            if (this.selectedFiles.length > 0) {
+            if (this.selectedFiles.length > 0 || this.pattern) {
                 await this.importFile();
             }
         }

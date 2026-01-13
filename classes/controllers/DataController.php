@@ -139,6 +139,23 @@ class DataController extends BaseController {
         $paths = $input['paths'] ?? [];
         if (empty($paths) && !empty($input['path'])) $paths = [$input['path']];
         
+        // パターンマッチングのサポート
+        $pattern = $input['pattern'] ?? '';
+        if (!empty($pattern)) {
+            // パターンはプロジェクトルートからの相対パスとして扱う
+            $searchPattern = $this->projectRoot . '/' . trim($pattern, '/');
+            // ワイルドカード展開
+            $globbed = glob($searchPattern);
+            if ($globbed !== false) {
+                foreach ($globbed as $g) {
+                    if (is_file($g)) {
+                        $paths[] = str_replace($this->projectRoot . '/', '', $g);
+                    }
+                }
+            }
+        }
+
+        $paths = array_unique($paths);
         $hasHeader = $input['has_header'] ?? true;
         
         // ファイル検証
@@ -146,7 +163,7 @@ class DataController extends BaseController {
         foreach ($paths as $p) {
             $realPaths[] = $this->validatePath($p, true);
         }
-        if (empty($realPaths)) throw new Exception('No valid files');
+        if (empty($realPaths)) throw new Exception('No valid files found matching criteria');
 
         // 型推論とテーブル作成のロジック
         return $this->processFileImport($realPaths, $hasHeader, $input['index_column'] ?? '');

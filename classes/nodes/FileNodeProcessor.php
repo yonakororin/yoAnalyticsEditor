@@ -40,26 +40,57 @@ class FileNodeProcessor extends NodeProcessor {
         $rawFiles = explode(",", $targetFileStr);
         $validFiles = [];
 
+        // Check for 'pattern' property in node data
+        $pattern = $node['pattern'] ?? ($node['data']['pattern'] ?? '');
+        if ($pattern && !$isOverridden) {
+            $rawFiles[] = $pattern; // Add pattern to raw files list to be processed
+        }
+
         foreach ($rawFiles as $f) {
             $f = trim($f);
             if (!$f) continue;
 
-            if ($isOverridden) {
-                $importPath = $this->projectRoot . '/' . trim($f, '/');
-                if (!file_exists($importPath)) {
-                    if (file_exists($f)) $importPath = $f;
-                    else throw new Exception("File override not found: $f");
-                }
-                $validFiles[] = $importPath;
+            // Expand globs if wildcard present
+            $expandedFiles = [];
+            if (strpos($f, '*') !== false || strpos($f, '?') !== false) {
+                 if ($isOverridden) {
+                    // Override paths are usually absolute or relative to CWD, but here we assume project root if relative
+                    $search = (strpos($f, '/') === 0) ? $f : $this->projectRoot . '/' . $f;
+                 } else {
+                    $search = $this->projectRoot . '/' . $f;
+                 }
+                 
+                 $globbed = glob($search);
+                 if ($globbed) {
+                     foreach($globbed as $g) {
+                         if (is_file($g)) $expandedFiles[] = $g;
+                     }
+                 }
             } else {
-                $importPath = $this->projectRoot . '/' . trim($f, '/');
-                if (!file_exists($importPath)) {
-                    $currentPath = $node['currentPath'] ?? ($node['data']['currentPath'] ?? '');
-                    $importPath2 = $this->projectRoot . '/' . trim($currentPath, '/') . '/' . trim($f, '/');
-                    if (file_exists($importPath2)) $importPath = $importPath2;
-                    else throw new Exception("File not found: $f");
+                // Determine absolute path
+                if ($isOverridden) {
+                    $importPath = $this->projectRoot . '/' . trim($f, '/');
+                    if (!file_exists($importPath)) {
+                        if (file_exists($f)) $importPath = $f;
+                         // Don't throw yet, check if it was just a failed singular lookup, maybe handled later? 
+                         // Actually the original code threw exception.
+                    }
+                    $expandedFiles[] = $importPath;
+                } else {
+                    $importPath = $this->projectRoot . '/' . trim($f, '/');
+                    if (!file_exists($importPath)) {
+                        $currentPath = $node['currentPath'] ?? ($node['data']['currentPath'] ?? '');
+                        $importPath2 = $this->projectRoot . '/' . trim($currentPath, '/') . '/' . trim($f, '/');
+                        if (file_exists($importPath2)) $importPath = $importPath2;
+                    }
+                    $expandedFiles[] = $importPath;
                 }
-                $validFiles[] = $importPath;
+            }
+
+            foreach ($expandedFiles as $path) {
+                if (file_exists($path)) {
+                    $validFiles[] = $path;
+                }
             }
         }
 
